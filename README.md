@@ -3,7 +3,7 @@
 Iris is a **voice-first** Android personal assistant built with **Kotlin**.  
 It is designed as an **agent-based system**: the LLM decides, and the app takes real actions (notes, reminders, calls).
 
-> Current stage: **Stage 1 complete** ✅ (Project setup + secure Gemini API key storage)
+> Current stage: **Stage 1 and 2 complete** ✅
 
 ---
 
@@ -16,7 +16,7 @@ It is designed as an **agent-based system**: the LLM decides, and the app takes 
 
 ## Roadmap (Stage-based)
 - ✅ **Stage 1:** Project setup + secure Gemini API key storage (Android Keystore + AES-GCM)
-- ⏳ **Stage 2:** STT + TTS (button-to-talk voice loop)
+- ✅ **Stage 2:** STT + TTS (button-to-talk voice loop)
 - ⏳ **Stage 3:** Gemini client (first LLM response)
 - ⏳ **Stage 4:** Tool parsing + `add_note` + `list_recent_notes`
 - ⏳ **Stage 5:** Room DB + time-range queries
@@ -45,4 +45,3 @@ It is designed as an **agent-based system**: the LLM decides, and the app takes 
 1. Open the project in Android Studio
 2. Sync Gradle
 3. Run on emulator or physical device
-4. Enter Gemini API key on the Stage 1 screen
