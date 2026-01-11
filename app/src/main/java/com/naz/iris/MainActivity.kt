@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import com.naz.iris.data.settings.ApiKeyRepository
 import com.naz.iris.ui.screen.ApiKeyScreen
+import com.naz.iris.ui.screen.VoiceTestScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -21,11 +22,8 @@ class MainActivity : ComponentActivity() {
 
             MaterialTheme {
                 Surface {
-                    ApiKeyScreen(
-                        existingKeyMasked = masked,
-                        onSave = { repo.saveApiKey(it) },
-                        onClear = { repo.clearApiKey() }
-                    )
+                    VoiceTestScreen()
+
                 }
             }
         }

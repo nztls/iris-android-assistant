@@ -1,15 +1,98 @@
+# =========================
+# Android / Gradle
+# =========================
+.gradle/
+build/
+**/build/
+
+# Local config (SDK path etc.)
+local.properties
+
+# Gradle wrapper cache (optional)
+!gradle/wrapper/gradle-wrapper.jar
+
+# =========================
+# Android Studio / IntelliJ
+# =========================
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
+*.ipr
+*.iws
+.idea/**
+
+# Android Studio generated
+/.idea/caches/
+/.idea/shelf/
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/deploymentTargetDropDown.xml
+/.idea/misc.xml
+/.idea/inspectionProfiles/
+
+# =========================
+# OS files
+# =========================
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+Thumbs.db
+Desktop.ini
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Kotlin / Java
+# =========================
+*.class
+
+# =========================
+# Keystore / Signing (IMPORTANT)
+# =========================
+*.jks
+*.keystore
+*.p12
+*.pem
+
+# Signing configs (if you ever add them)
+signing.properties
+key.properties
+
+# =========================
+# Firebase / Google Services
+# =========================
+google-services.json
+
+# =========================
+# Secrets / Env
+# =========================
+.env
+.env.*
+*.env
+secrets/
+**/secrets/
+
+# =========================
+# Native / Misc
+# =========================
+.cxx/
+.externalNativeBuild/
+captures/
+*.hprof
+
+# =========================
+# Fastlane (if added later)
+# =========================
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# =========================
+# Release outputs (optional)
+# =========================
+*.apk
+*.aab
+*.ap_
