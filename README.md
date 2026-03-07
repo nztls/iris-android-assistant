@@ -17,7 +17,7 @@ It is designed as an **agent-based system**: the LLM decides, and the app takes 
 ## Roadmap (Stage-based)
 - ✅ **Stage 1:** Project setup + secure Gemini API key storage (Android Keystore + AES-GCM)
 - ✅ **Stage 2:** STT + TTS (button-to-talk voice loop)
-- ⏳ **Stage 3:** Gemini client (first LLM response)
+- ✅ **Stage 3:** Gemini client (first LLM response)
 - ⏳ **Stage 4:** Tool parsing + `add_note` + `list_recent_notes`
 - ⏳ **Stage 5:** Room DB + time-range queries
 - ⏳ **Stage 6:** Foreground service + wake word flow
