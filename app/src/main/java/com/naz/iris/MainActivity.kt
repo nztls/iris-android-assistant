@@ -15,7 +15,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.naz.iris.core.tools.IrisToolDispatcher
+import com.naz.iris.core.tools.IrisToolDispatcherImpl
+import com.naz.iris.data.llm.GeminiClient
+import com.naz.iris.data.notes.IrisDatabase
+import com.naz.iris.data.notes.NotesRepository
 import com.naz.iris.data.settings.ApiKeyRepository
+import com.naz.iris.ui.screen.AgentVoiceScreen
 import com.naz.iris.ui.screen.ApiKeyScreen
 import com.naz.iris.ui.screen.VoiceTestScreen
 
@@ -24,14 +30,27 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val repo = ApiKeyRepository(applicationContext)
+        val appCtx = applicationContext
+        val apiKeyRepo = ApiKeyRepository(appCtx)
+
+        // Room + NotesRepo
+        val db = IrisDatabase.getInstance(appCtx)
+        val notesRepo = NotesRepository(db.notesDao())
+
+        // Tool Dispatcher
+        val toolDispatcher: IrisToolDispatcher = IrisToolDispatcherImpl(notesRepo)
+
+        // Gemini Client
+        val geminiClient = GeminiClient(
+            apiKeyProvider = { apiKeyRepo.loadApiKey() }
+        )
 
         setContent {
-            val loadedKey = repo.loadApiKey()
-            val masked = loadedKey?.let { "••••••" + it.takeLast(4) }
-
             var screen by remember { mutableStateOf("home") }
-            // "home" | "voice" | "apikey"
+            // "home" | "voice" | "apikey" | "agent"
+
+            val loadedKey = apiKeyRepo.loadApiKey()
+            val masked = loadedKey?.let { "••••••" + it.takeLast(4) }
 
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
@@ -40,6 +59,7 @@ class MainActivity : ComponentActivity() {
                             Column(
                                 modifier = Modifier
                                     .fillMaxSize()
+                                    .statusBarsPadding()
                                     .padding(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
@@ -52,6 +72,10 @@ class MainActivity : ComponentActivity() {
                                 Button(onClick = { screen = "apikey" }) {
                                     Text("Stage 1: API Key")
                                 }
+
+                                Button(onClick = { screen = "agent" }) {
+                                    Text("Stage 3: Agent + Tools")
+                                }
                             }
                         }
 
@@ -59,7 +83,7 @@ class MainActivity : ComponentActivity() {
                             Column(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .statusBarsPadding()   // ✅ geri butonu status bar altına
+                                    .statusBarsPadding()
                                     .padding(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
@@ -85,12 +109,31 @@ class MainActivity : ComponentActivity() {
 
                                 ApiKeyScreen(
                                     existingKeyMasked = masked,
-                                    onSave = { repo.saveApiKey(it) },
-                                    onClear = { repo.clearApiKey() }
+                                    onSave = { apiKeyRepo.saveApiKey(it) },
+                                    onClear = { apiKeyRepo.clearApiKey() }
                                 )
                             }
                         }
 
+                        "agent" -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .statusBarsPadding()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Button(onClick = { screen = "home" }) {
+                                    Text("← Geri")
+                                }
+
+                                AgentVoiceScreen(
+                                    modifier = Modifier.fillMaxSize(),
+                                    geminiClient = geminiClient,
+                                    toolDispatcher = toolDispatcher
+                                )
+                            }
+                        }
                     }
                 }
             }
