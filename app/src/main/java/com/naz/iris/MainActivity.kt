@@ -24,11 +24,16 @@ import com.naz.iris.data.settings.ApiKeyRepository
 import com.naz.iris.ui.screen.AgentVoiceScreen
 import com.naz.iris.ui.screen.ApiKeyScreen
 import com.naz.iris.ui.screen.VoiceTestScreen
+import com.naz.iris.core.agent.ConversationMemory
+import com.naz.iris.core.agent.IrisAgentOrchestrator
+import com.naz.iris.core.reminder.ReminderNotificationHelper
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        ReminderNotificationHelper.ensureChannel(applicationContext)
 
         val appCtx = applicationContext
         val apiKeyRepo = ApiKeyRepository(appCtx)
@@ -38,7 +43,10 @@ class MainActivity : ComponentActivity() {
         val notesRepo = NotesRepository(db.notesDao())
 
         // Tool Dispatcher
-        val toolDispatcher: IrisToolDispatcher = IrisToolDispatcherImpl(notesRepo)
+        val toolDispatcher: IrisToolDispatcher = IrisToolDispatcherImpl(
+            context = appCtx,
+            notesRepository = notesRepo
+        )
 
         // Gemini Client
         val geminiClient = GeminiClient(
@@ -47,10 +55,19 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             var screen by remember { mutableStateOf("home") }
-            // "home" | "voice" | "apikey" | "agent"
 
             val loadedKey = apiKeyRepo.loadApiKey()
             val masked = loadedKey?.let { "••••••" + it.takeLast(4) }
+
+            val memory = remember { ConversationMemory() }
+
+            val orchestrator = remember {
+                IrisAgentOrchestrator(
+                    geminiClient = geminiClient,
+                    toolDispatcher = toolDispatcher,
+                    memory = memory
+                )
+            }
 
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
@@ -74,7 +91,7 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 Button(onClick = { screen = "agent" }) {
-                                    Text("Stage 3: Agent + Tools")
+                                    Text("Stage 4: Agent + Memory 🚀")
                                 }
                             }
                         }
@@ -129,8 +146,7 @@ class MainActivity : ComponentActivity() {
 
                                 AgentVoiceScreen(
                                     modifier = Modifier.fillMaxSize(),
-                                    geminiClient = geminiClient,
-                                    toolDispatcher = toolDispatcher
+                                    orchestrator = orchestrator
                                 )
                             }
                         }

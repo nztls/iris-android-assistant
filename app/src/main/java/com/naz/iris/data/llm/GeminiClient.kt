@@ -1,7 +1,9 @@
 package com.naz.iris.data.llm
 
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -21,6 +23,10 @@ class GeminiClient(
     private val apiKeyProvider: () -> String?,
     private val model: String = GeminiModels.DEFAULT_MODEL
 ) {
+    companion object {
+        private const val TAG = "GeminiClient"
+    }
+
     private val http = OkHttpClient.Builder()
         .connectTimeout(60, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
@@ -38,7 +44,11 @@ class GeminiClient(
     ): GeminiResult = withContext(Dispatchers.IO) {
         val key = apiKeyProvider()?.trim()
         if (key.isNullOrEmpty()) {
-            return@withContext GeminiResult.Error(GeminiResult.Kind.NO_KEY, "API key yok")
+            Log.e(TAG, "API key yok")
+            return@withContext GeminiResult.Error(
+                GeminiResult.Kind.NO_KEY,
+                "API key yok"
+            )
         }
 
         val endpoint =
@@ -62,6 +72,12 @@ class GeminiClient(
         )
 
         val bodyStr = json.encodeToString(GeminiGenerateRequest.serializer(), bodyObj)
+
+        Log.d(TAG, "Model: $model")
+        Log.d(TAG, "User message length: ${userMessage.length}")
+        Log.d(TAG, "System prompt length: ${systemPrompt.length}")
+        Log.d(TAG, "Request body: $bodyStr")
+
         val mediaType = "application/json; charset=utf-8".toMediaType()
         val req = Request.Builder()
             .url(endpoint)
@@ -73,16 +89,20 @@ class GeminiClient(
                 val code = resp.code
                 val respBody = resp.body?.string().orEmpty()
 
+                Log.d(TAG, "HTTP code: $code")
+                Log.d(TAG, "Raw response: $respBody")
+
                 if (!resp.isSuccessful) {
                     return@withContext GeminiResult.Error(
                         GeminiResult.Kind.HTTP,
-                        "HTTP $code: ${respBody.take(300)}"
+                        "HTTP $code: ${respBody.take(1000)}"
                     )
                 }
 
                 val parsed = try {
                     json.decodeFromString(GeminiGenerateResponse.serializer(), respBody)
                 } catch (e: Exception) {
+                    Log.e(TAG, "Parse error", e)
                     return@withContext GeminiResult.Error(
                         GeminiResult.Kind.PARSE,
                         "Response parse edilemedi: ${e.message}"
@@ -97,6 +117,8 @@ class GeminiClient(
                     ?.trim()
                     .orEmpty()
 
+                Log.d(TAG, "Parsed text: $text")
+
                 if (text.isBlank()) {
                     return@withContext GeminiResult.Error(
                         GeminiResult.Kind.PARSE,
@@ -107,11 +129,23 @@ class GeminiClient(
                 GeminiResult.Success(text)
             }
         } catch (e: java.net.SocketTimeoutException) {
-            GeminiResult.Error(GeminiResult.Kind.TIMEOUT, "Timeout: ${e.message}")
+            Log.e(TAG, "Timeout", e)
+            GeminiResult.Error(
+                GeminiResult.Kind.TIMEOUT,
+                "Timeout: ${e.message}"
+            )
         } catch (e: IOException) {
-            GeminiResult.Error(GeminiResult.Kind.NETWORK, "Network: ${e.message}")
+            Log.e(TAG, "Network error", e)
+            GeminiResult.Error(
+                GeminiResult.Kind.NETWORK,
+                "Network: ${e.message}"
+            )
         } catch (e: Exception) {
-            GeminiResult.Error(GeminiResult.Kind.UNKNOWN, "Unknown: ${e.message}")
+            Log.e(TAG, "Unknown error", e)
+            GeminiResult.Error(
+                GeminiResult.Kind.UNKNOWN,
+                "Unknown: ${e.message}"
+            )
         }
     }
 }
